@@ -3,7 +3,8 @@ import os
 
 _settings = {
     "PROJECT_DB_API_KEY": os.getenv("PROJECT_DB_API_KEY", ""),
-    "BATCH_INTERVAL": int(os.getenv('BATCH_INTERVAL', 86400)),
+    "DB_HOST": os.getenv("DB_HOST", "localhost:8080"),
+    "BATCH_INTERVAL": int(os.getenv('BATCH_INTERVAL', 86400)), # 24h
     "LOG_LEVEL": os.getenv("LOG_LEVEL", "ERROR"),
     "MQ_HOST": "mq",
     "MQ_EXCHANGE": "zhaw-km",
@@ -20,6 +21,7 @@ if os.path.exists("/etc/app/secrets.json"):
                 _settings[str.upper(key)] = config[key]
 
 PROJECT_DB_API_KEY = _settings["PROJECT_DB_API_KEY"]
+DB_HOST = _settings["DB_HOST"]
 BATCH_INTERVAL = _settings['BATCH_INTERVAL']
 LOG_LEVEL = _settings["LOG_LEVEL"]
 MQ_HOST = _settings["MQ_HOST"]
