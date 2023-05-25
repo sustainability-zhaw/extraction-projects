@@ -1,19 +1,17 @@
 FROM python:3.11.1-slim-bullseye
 
-COPY requirements.txt /requirements.txt
+RUN groupadd -r app && \
+    useradd --no-log-init -r -m -g app app
 
-WORKDIR /app
-
-RUN pip install -r /requirements.txt && \
-    rm /requirements.txt && \
-    groupadd -r app && \
-    useradd --no-log-init -r -g app app && \
-    chmod -R 775 /app
+COPY requirements.txt .
+RUN pip install --root-user-action=ignore --no-cache-dir -r requirements.txt && \
+    rm requirements.txt
 
 COPY src/ /app/
+RUN chmod -R 775 /app
 
 USER app
 
-EXPOSE 8080
+WORKDIR /app
 
 CMD [ "python", "main.py" ]
