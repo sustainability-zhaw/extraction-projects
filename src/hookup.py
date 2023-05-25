@@ -4,12 +4,14 @@ import requests
 import settings
 from logger import logger
 import db
+import codecs
 
 
 def fetch_all_projects():
     response = requests.get("https://forschungsapp-api.zhaw.ch/api/pdb/" + settings.PROJECT_DB_API_KEY)
     response.raise_for_status()
-    return response.json()["data"]["pdblist"]
+    # API Response contains UTF-8 BOM
+    return json.loads(codecs.decode(response.text.encode(), 'utf-8-sig'))["data"]["pdblist"]
 
 
 def map_keywords(project, info_object):
