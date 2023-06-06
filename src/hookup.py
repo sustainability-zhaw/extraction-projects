@@ -50,8 +50,6 @@ def map_class(project, info_boject):
 def map_authors(project, info_object):
     members = []
     
-    if "FDBvornameKontaktperson" in project:
-        members.extend([{ "id": project["fdbkurzzeichenkontaktpersonperson"], "surname": project["FDBnachnameKontaktperson"], "given_name": project["FDBvornameKontaktperson"] }])
     if "fdbwaprojektteamintern" in project:
         members.extend({"surname": member["lastname"], "given_name": member["firstname"] } for member in project["fdbwaprojektteamintern"])
     
