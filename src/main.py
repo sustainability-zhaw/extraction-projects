@@ -15,10 +15,10 @@ if __name__ == "__main__":
     result = channel.queue_declare(settings.MQ_QUEUE, exclusive=False)
 
     while True:
-        logger.info("start iteration")
+        logger.info("start import")
         try:
             hookup.run(channel)
         except:
             logger.exception('Unhandled exception')
-        logger.info("finish iteration") 
-        time.sleep(settings.BATCH_INTERVAL)
+        logger.info("finished import") 
+        time.sleep(settings.IMPORT_INTERVAL)
