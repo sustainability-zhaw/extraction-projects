@@ -12,7 +12,6 @@ if __name__ == "__main__":
                                 blocked_connection_timeout=settings.MQ_TIMEOUT))
     channel = connection.channel()
     channel.exchange_declare(exchange=settings.MQ_EXCHANGE, exchange_type="topic")
-    result = channel.queue_declare(settings.MQ_QUEUE, exclusive=False)
 
     while True:
         logger.info("start import")

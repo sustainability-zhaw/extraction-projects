@@ -11,8 +11,7 @@ _settings = {
     "MQ_HOST": "mq",
     "MQ_EXCHANGE": "zhaw-km",
     "MQ_HEARTBEAT": 6000,
-    "MQ_TIMEOUT": 3600,
-    "MQ_QUEUE": "indexqueue"
+    "MQ_TIMEOUT": 3600
 }
 
 if os.path.exists("/etc/app/secrets.json"):
