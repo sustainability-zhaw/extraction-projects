@@ -53,8 +53,8 @@ def map_class(project, info_boject):
 def run(channel):
     projects = fetch_all_projects()
 
-    for projects_batch in utils.batch(projects, settings.BATCH_SIZE):
-        logger.info("start processing batch")
+    for projects_batch, page, pages in utils.batch(projects, settings.BATCH_SIZE):
+        logger.info(f"Processing batch {page} of {pages}")
         for project in projects_batch:
             info_object = {}
 
@@ -106,5 +106,8 @@ def run(channel):
                 logger.exception(f"Failed to publish import event for: {info_object['link']}")
                 continue
 
-        logger.info("finished processing batch")
-        time.sleep(settings.BATCH_INTERVAL)
+        logger.info(f"Finished processing batch {page} of {pages}")
+
+        if page < pages:
+            logger.info(f"Waiting {settings.BATCH_INTERVAL} seconds before processing next batch")
+            time.sleep(settings.BATCH_INTERVAL)
