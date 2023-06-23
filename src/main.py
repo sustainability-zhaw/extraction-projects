@@ -1,23 +1,34 @@
+import logging
 import time
+
 import pika
-import settings
-import hookup
-from logger import logger
+
+import importer
+from settings import settings
+
+
+logging.basicConfig(format="%(levelname)s: %(name)s: %(asctime)s: %(message)s", level=settings.LOG_LEVEL)
+logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
     connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host=settings.MQ_HOST,
-                                heartbeat=settings.MQ_HEARTBEAT,
-                                blocked_connection_timeout=settings.MQ_TIMEOUT))
+        pika.ConnectionParameters(
+            host=settings.MQ_HOST,
+            heartbeat=settings.MQ_HEARTBEAT,
+            blocked_connection_timeout=settings.MQ_TIMEOUT
+        )
+    )
+
     channel = connection.channel()
     channel.exchange_declare(exchange=settings.MQ_EXCHANGE, exchange_type="topic")
 
     while True:
-        logger.info("start import")
         try:
-            hookup.run(channel)
+            logger.info("Running import")
+            importer.run(channel)
         except:
             logger.exception('Unhandled exception')
-        logger.info("finished import") 
+
+        logger.info(f"Import completed. Waiting {settings.IMPORT_INTERVAL} seconds before next import run.") 
         time.sleep(settings.IMPORT_INTERVAL)
