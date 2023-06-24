@@ -29,7 +29,6 @@ settings = Settings({
     "MQ_TIMEOUT": int(os.getenv("MQ_TIMEOUT", 3600))
 })
 
-
 for path in ["/etc/app/config.json", "/etc/app/secrets.json"]:
     if os.path.exists(path):
         with open(path) as file:

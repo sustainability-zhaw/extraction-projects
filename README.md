@@ -1,6 +1,6 @@
 # Extraction pipeline for project database
 
-Service for importing projects from the ZHAW project database.
+Imports projects from the ZHAW project database.
 
 *Note: The project database API is only accessible from within the ZHAW network. A VPN connection is required to access it from outside.*
 

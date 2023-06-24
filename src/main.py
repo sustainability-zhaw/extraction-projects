@@ -21,7 +21,7 @@ if __name__ == "__main__":
     )
 
     channel = connection.channel()
-    channel.exchange_declare(exchange=settings.MQ_EXCHANGE, exchange_type="topic")
+    channel.exchange_declare(settings.MQ_EXCHANGE, exchange_type="topic")
 
     while True:
         try:
