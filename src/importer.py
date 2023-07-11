@@ -14,7 +14,8 @@ from settings import settings
 
 logger = logging.getLogger(__name__)
 
-graphql_client = None # Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
+# don't initialize client here, because settings are not loaded, yet
+graphql_client = None
 
 def fetch_all_projects():
     response = requests.get("https://forschungsapp-api.zhaw.ch/api/pdb/" + settings.PROJECT_DB_API_KEY)
@@ -79,7 +80,7 @@ def parse_class(project):
 
 def upsert_info_object(info_object):
     global graphql_client
-    
+
     if graphql_client is None:
         logger.info(f"connect to database at '{settings.DB_HOST}'")
         graphql_client = Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
