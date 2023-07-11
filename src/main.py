@@ -4,7 +4,7 @@ import time
 import pika
 
 import importer
-import settings
+from settings import settings
 
 
 logging.basicConfig(format="%(levelname)s: %(name)s: %(asctime)s: %(message)s", level=settings.LOG_LEVEL)
@@ -14,7 +14,7 @@ logging.getLogger("pika").setLevel(logging.WARNING)
 
 if __name__ == "__main__":
     logger.info(f"init message queue connection to host '{settings.MQ_HOST}'")
-    
+
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
             host=settings.MQ_HOST,

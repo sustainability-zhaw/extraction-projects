@@ -9,11 +9,19 @@ class Settings(dict):
             for key, value in value.items() 
         })
 
-    def __getattr__(self, name):
-        return self[name.upper()]
+    # def __getattr__(self, name):
+    #     return self[name.upper()]
 
-    def __setattr__(self, name, value):
-        self[name.upper()] = Settings(value) if isinstance(value, dict) else value 
+    # def __setattr__(self, name, value):
+    #     self[name.upper()] = Settings(value) if isinstance(value, dict) else value 
+
+    def __getitem__(self, name):
+        return super().__getitem__(name.upper())
+
+    def __setitem__(self, name, value):
+        name = name.upper()
+        value = Settings(value) if isinstance(value, dict) else value 
+        super().__setitem__(name, value)
 
 
 settings = Settings({
