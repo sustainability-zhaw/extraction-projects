@@ -48,7 +48,7 @@ class TestSettings(unittest.TestCase):
 
     def test_07_loadmissing(self):
         settings.load(["defaults.json", "tests/lowercasekeys.json", "tests/missing.json"])
-        
+
         self.assertEqual(settings["LOG_LEVEL"],"INFO")
         self.assertEqual(settings["log_level"],"INFO")    
         self.assertEqual(settings.log_level,"INFO")
@@ -62,6 +62,14 @@ class TestSettings(unittest.TestCase):
         self.assertEqual(settings["PROJECT_DB_API_KEY"],"")
         self.assertEqual(settings["LOG_LEVEL"],"ERROR")
         self.assertEqual(settings["DB_HOST"],"localhost:8080")
+
+    def test_09_upper_lowercased_keys(self):
+        settings.load(["tests/config.json", "tests/lowercasekeys.json"])
+
+        self.assertEqual(settings["LOG_LEVEL"],"INFO")
+        self.assertEqual(settings["log_level"],"INFO")    
+        self.assertEqual(settings.log_level,"INFO")
+        self.assertEqual(settings["DB_HOST"],"foobar:8081")
 
 if __name__ == '__main__':
     unittest.main()

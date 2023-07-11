@@ -12,11 +12,10 @@ import requests
 
 from settings import settings
 
-
 logger = logging.getLogger(__name__)
 
 logger.info(f"connect to database at '{settings.DB_HOST}'")
-graphql_client = Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
+# graphql_client = Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
 
 
 def fetch_all_projects():
@@ -132,13 +131,13 @@ def run(channel):
                         if project_field_name in project:
                             info_object[info_object_field_name] = parse_field(project)
 
-                upsert_info_object(info_object)
+                # upsert_info_object(info_object)
 
-                channel.basic_publish(
-                    exchange=settings.MQ_EXCHANGE,
-                    routing_key="importer.object", 
-                    body=json.dumps({ "link": info_object["link"] })
-                )
+                # channel.basic_publish(
+                #     exchange=settings.MQ_EXCHANGE,
+                #     routing_key="importer.object", 
+                #     body=json.dumps({ "link": info_object["link"] })
+                # )
             except:
                 logger.exception(f"An error occured during processing of project: {project['fdbid']}")
                 continue
