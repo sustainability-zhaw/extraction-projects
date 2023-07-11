@@ -3,18 +3,19 @@ import os
 
 
 class Settings(dict):
-    def __init__(self, value: dict):
-        self.update({ 
+    def __init__(self, mapping: dict):
+        mapping = { 
             key.upper(): Settings(value) if isinstance(value, dict) else value 
-            for key, value in value.items() 
-        })
+            for key, value in mapping.items() 
+        }
+        super().__init__(mapping)
 
-    # def __getattr__(self, name):
-    #     return self[name.upper()]
+    def __getattr__(self, name):
+        return self.__getitem__(name.upper())
 
-    # def __setattr__(self, name, value):
-    #     self[name.upper()] = Settings(value) if isinstance(value, dict) else value 
-
+    def __setattr__(self, name, value):
+        self.__setitem__(name,value)
+        
     def __getitem__(self, name):
         return super().__getitem__(name.upper())
 
