@@ -14,7 +14,7 @@ from settings import settings
 
 logger = logging.getLogger(__name__)
 
-# graphql_client = Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
+graphql_client = None # Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
 
 def fetch_all_projects():
     response = requests.get("https://forschungsapp-api.zhaw.ch/api/pdb/" + settings.PROJECT_DB_API_KEY)
@@ -78,6 +78,12 @@ def parse_class(project):
 
 
 def upsert_info_object(info_object):
+    global graphql_client
+    
+    if graphql_client is None:
+        logger.info(f"connect to database at '{settings.DB_HOST}'")
+        graphql_client = Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
+    
     graphql_client.execute(
         gql(
             """
@@ -110,9 +116,7 @@ field_parsers = {
 }
 
 
-def run(channel):
-    logger.info(f"connect to database at '{settings.DB_HOST}'")
-
+def run(channel):    
     projects = fetch_all_projects()
 
     for batch_of_projects, batch_number, number_of_batches in batch(projects, settings.BATCH_SIZE):
@@ -131,13 +135,13 @@ def run(channel):
                         if project_field_name in project:
                             info_object[info_object_field_name] = parse_field(project)
 
-                # upsert_info_object(info_object)
+                upsert_info_object(info_object)
 
-                # channel.basic_publish(
-                #     exchange=settings.MQ_EXCHANGE,
-                #     routing_key="importer.object", 
-                #     body=json.dumps({ "link": info_object["link"] })
-                # )
+                channel.basic_publish(
+                    exchange=settings.MQ_EXCHANGE,
+                    routing_key="importer.object", 
+                    body=json.dumps({ "link": info_object["link"] })
+                )
             except:
                 logger.exception(f"An error occured during processing of project: {project['fdbid']}")
                 continue
