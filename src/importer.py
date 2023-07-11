@@ -14,9 +14,7 @@ from settings import settings
 
 logger = logging.getLogger(__name__)
 
-logger.info(f"connect to database at '{settings.DB_HOST}'")
 # graphql_client = Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
-
 
 def fetch_all_projects():
     response = requests.get("https://forschungsapp-api.zhaw.ch/api/pdb/" + settings.PROJECT_DB_API_KEY)
@@ -113,6 +111,8 @@ field_parsers = {
 
 
 def run(channel):
+    logger.info(f"connect to database at '{settings.DB_HOST}'")
+
     projects = fetch_all_projects()
 
     for batch_of_projects, batch_number, number_of_batches in batch(projects, settings.BATCH_SIZE):
