@@ -1,6 +1,6 @@
 {
     "PROJECT_DB_API_KEY": "123a",
-    "DB_HOST": "foobar:8081",
+    "db_host": "foobar:8081",
     "IMPORT_INTERVAL": 86400, 
     "BATCH_INTERVAL": 300,
     "BATCH_SIZE": 100,

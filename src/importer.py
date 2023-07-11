@@ -15,6 +15,7 @@ from settings import settings
 
 logger = logging.getLogger(__name__)
 
+logger.info(f"connect to database at '{settings.DB_HOST}'")
 graphql_client = Client(transport=RequestsHTTPTransport(url=f"http://{settings.DB_HOST}/graphql"))
 
 

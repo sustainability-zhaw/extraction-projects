@@ -6,7 +6,11 @@ import pika
 import importer
 from settings import settings
 
-settings.load([ "defaults.json", "/etc/app/config.json", "/etc/app/secrets.json"])
+settings.load([
+    # "defaults.json", 
+    "/etc/app/config.json", 
+    "/etc/app/secrets.json"
+])
 
 logging.basicConfig(format="%(levelname)s: %(name)s: %(asctime)s: %(message)s", level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)

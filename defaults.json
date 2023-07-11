@@ -1,5 +1,5 @@
 {
-    "PROJECT_DB_API_KEY": "123a",
+    "PROJECT_DB_API_KEY": "",
     "DB_HOST": "localhost:8080",
     "IMPORT_INTERVAL": 86400, 
     "BATCH_INTERVAL": 300,

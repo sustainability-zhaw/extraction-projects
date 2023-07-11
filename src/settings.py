@@ -18,6 +18,7 @@ class Settings(UserDict):
         for path in pathlist:
             if os.path.exists(path):
                 with open(path) as f:
+                    # this is a bit dangerous, we should not trust config files
                     self.update(json.load(f))
 
 settings = Settings({
