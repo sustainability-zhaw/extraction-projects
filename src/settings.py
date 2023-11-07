@@ -31,5 +31,7 @@ settings = Settings({
     "MQ_HOST": os.getenv("MQ_HOST", "mq"),
     "MQ_EXCHANGE": os.getenv("MQ_EXCHANGE", "zhaw-km"),
     "MQ_HEARTBEAT": int(os.getenv("MQ_HEARTBEAT", 6000)),
-    "MQ_TIMEOUT": int(os.getenv("MQ_TIMEOUT", 3600))
+    "MQ_TIMEOUT": int(os.getenv("MQ_TIMEOUT", 3600)),
+    "MQ_USER": os.getenv("MQ_USER", "extraction-projects"),
+    "MQ_PASS": os.getenv("MQ_PASS", "guest")
 })

@@ -24,12 +24,12 @@ if __name__ == "__main__":
         pika.ConnectionParameters(
             host=settings.MQ_HOST,
             heartbeat=settings.MQ_HEARTBEAT,
-            blocked_connection_timeout=settings.MQ_TIMEOUT
+            blocked_connection_timeout=settings.MQ_TIMEOUT,
+            credentials=pika.PlainCredentials(settings.MQ_USER, settings.MQ_PASS)
         )
     )
 
     channel = connection.channel()
-    channel.exchange_declare(settings.MQ_EXCHANGE, exchange_type="topic")
 
     while True:
         try:
