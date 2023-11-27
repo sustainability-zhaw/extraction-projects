@@ -103,6 +103,12 @@ def upsert_info_object(info_object):
     )
 
 
+def determine_language(project):
+    if "fdbprojektbeschreibungde" in project and "fdbprojektbeschreibungen" in project and project["fdbprojektbeschreibungde"] == project["fdbprojektbeschreibungen"]:
+        return "en"
+    return "de"
+
+
 field_parsers = {
     "title": ("fdbprojekttitelde", parse_title),
     "abstract": ("fdbprojektbeschreibungde", lambda project: project["fdbprojektbeschreibungde"]),
@@ -126,7 +132,7 @@ def run(channel):
             try:
                 info_object = {
                     "link": f"https://www.zhaw.ch/de/forschung/forschungsdatenbank/projektdetail/projektid/{project['fdbid']}",
-                    "language": "de",
+                    "language": determine_language(project),
                     "category": { "name": "projects" },
                     "dateUpdate": int(datetime.datetime.utcnow().timestamp())
                 }
