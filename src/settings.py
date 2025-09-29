@@ -5,7 +5,7 @@ from collections import UserDict
 
 class Settings(UserDict):
     def __getattr__(self, name):
-        return self.__getitem__(name.upper());
+        return self.__getitem__(name.upper())
 
     def __getitem__(self, name):
         return super().__getitem__(name.upper())
