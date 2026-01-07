@@ -1,6 +1,5 @@
 import codecs
 import datetime
-import html
 import json
 import logging
 import math
@@ -11,17 +10,31 @@ from gql.transport.requests import RequestsHTTPTransport
 import requests
 
 from settings import settings
+from new_to_old_id_map import NEW_TO_OLD_ID_MAP
 
 logger = logging.getLogger(__name__)
 
 # don't initialize client here, because settings are not loaded, yet
 graphql_client = None
 
-def fetch_all_projects():
-    response = requests.get("https://forschungsapp-api.zhaw.ch/api/pdb/" + settings.PROJECT_DB_API_KEY)
+def fetch_all_project_ids():
+    response = requests.get(
+        url="https://api-gateway.zhaw.ch/research/v1/projects?lang=de&view=id",
+        headers={ "ApiKey": settings.PROJECT_DB_API_KEY }
+    )
     response.raise_for_status()
     # API Response contains UTF-8 BOM
-    return json.loads(codecs.decode(response.text.encode(), 'utf-8-sig'))["data"]["pdblist"]
+    return list([ project["project_id"] for project in json.loads(codecs.decode(response.text.encode(), 'utf-8-sig'))["data"]["projects"]])
+
+
+def fetch_project(project_id):
+    response = requests.get(
+        url=f"https://api-gateway.zhaw.ch/research/v1/projects/{project_id}?lang=de&view=id",
+        headers={ "ApiKey": settings.PROJECT_DB_API_KEY }
+    )
+    response.raise_for_status()
+    # API Response contains UTF-8 BOM
+    return json.loads(codecs.decode(response.text.encode(), 'utf-8-sig'))["data"]["project"]
 
 
 def batch(list, batch_size):
@@ -35,47 +48,6 @@ def batch(list, batch_size):
             batch_number, 
             number_of_batches
         )
-
-
-def parse_title(project):
-    title = project["fdbprojekttitelde"]
-    if "fdbprojektuntertitelde" in project:
-        title += ", " + project["fdbprojektuntertitelde"]
-    return title
-
-
-def parse_authors(project):
-    return list([
-        {
-            "fullname": f"{html.unescape(member['lastname'])}, {html.unescape(member['firstname'])}" 
-        } 
-        for member in project["fdbwaprojektteamintern"]
-    ])
-
-
-def parse_keywords(project):    
-    field_type = type(project["fdbwakeyword"])
-    keywords = []
-
-    if field_type is dict:
-        keywords.append(project["fdbwakeyword"]["fdbkeyword"])
-    elif field_type is list:
-        keywords.extend(item["fdbkeyword"] for item in project["fdbwakeyword"])
-
-    return list([{ "name": keyword } for keyword in keywords])
-
-
-def parse_class(project):
-    field_type = type(project["fdbwathemenbereichhauptklasse"])
-    ddcs = []
-    
-    if field_type is dict and type(project["fdbwathemenbereichhauptklasse"]["fdbthemenbereichhauptklasse"]) is str:
-        ddcs.append(project["fdbwathemenbereichhauptklasse"]["fdbthemenbereichhauptklasse"])
-    elif field_type is list:
-        ddcs.extend(item["fdbthemenbereichhauptklasse"] for item in project["fdbwathemenbereichhauptklasse"])
-
-    ddcs = [ddc.split("-", 1) for ddc in ddcs]
-    return list([{ "id": ddc.strip(), "name": label.strip() } for ddc, label in ddcs])
 
 
 def upsert_info_object(info_object):
@@ -103,38 +75,34 @@ def upsert_info_object(info_object):
     )
 
 
-def determine_language(project):
-    if "fdbprojektbeschreibungde" in project and "fdbprojektbeschreibungen" in project and project["fdbprojektbeschreibungde"] == project["fdbprojektbeschreibungen"]:
-        return "en"
-    return "de"
-
-
 field_parsers = {
-    "title": ("fdbprojekttitelde", parse_title),
-    "abstract": ("fdbprojektbeschreibungde", lambda project: project["fdbprojektbeschreibungde"]),
-    "year": ("fdbprojektstart", lambda project: int(project["fdbprojektstart"][0:4])),
-    "subtype": ("fdbprojekttyp", lambda project: { "name": project["fdbprojekttyp"] }),
-    "start_date": ("fdbprojektstart", lambda project: datetime.datetime.strptime(project["fdbprojektstart"].split()[0], "%Y-%m-%d").isoformat()),
-    "end_date": ("fdbprojektende", lambda project: datetime.datetime.strptime(project["fdbprojektende"].split()[0], "%Y-%m-%d").isoformat()),
-    "departments": ("fdbbeteiligtedepartemente", lambda project: [{ "id": "department_" + dep.strip() } for dep in project["fdbbeteiligtedepartemente"].split(";")]),
-    "authors": ("fdbwaprojektteamintern", parse_authors),
-    "keywords": ("fdbwakeyword", parse_keywords),
-    "class": ("fdbwathemenbereichhauptklasse", parse_class)
+    "title": ("title", lambda project: project["title"]),
+    "abstract": ("description", lambda project: project["description"]),
+    "year": ("project_start", lambda project: int(project["project_start"][0:4])),
+    "subtype": ("project_typ", lambda project: { "name": project["project_typ"]["name"] }),
+    "start_date": ("project_start", lambda project: datetime.datetime.strptime(project["project_start"], "%Y-%m-%d").isoformat()),
+    "end_date": ("project_end", lambda project: datetime.datetime.strptime(project["project_end"], "%Y-%m-%d").isoformat()),
+    "departments": ("organisation_unit", lambda project: list([{ "id": "department_" + dep.upper() } for dep in { ou["code"][0] for ou in project["organisation_unit"] }])),
+    "authors": ("team", lambda project: list([{ "fullname": f"{member['lastname']}, {member['firstname']}" } for member in project["team"]])),
+    "keywords": ("keyword", lambda project: list([{ "name": keyword["name"] } for keyword in project["keyword"]])),
+    # "class": ("fdbwathemenbereichhauptklasse", parse_class) # Does not exist anymore in new api
 }
 
 
 def run(channel):    
-    projects = fetch_all_projects()
+    projects_ids = fetch_all_project_ids()
 
-    for batch_of_projects, batch_number, number_of_batches in batch(projects, settings.BATCH_SIZE):
+    for batch_of_project_ids, batch_number, number_of_batches in batch(projects_ids, settings.BATCH_SIZE):
         logger.info(f"Processing batch {batch_number} of {number_of_batches}")
-        for project in batch_of_projects:
+        for project_id in batch_of_project_ids:
             try:
+                project = fetch_project(project_id)
+
                 info_object = {
-                    "link": f"https://www.zhaw.ch/de/forschung/forschungsdatenbank/projektdetail/projektid/{project['fdbid']}",
-                    "language": determine_language(project),
+                    "link":  f"https://www.zhaw.ch/de/forschung/forschungsdatenbank/projektdetail/projektid/{NEW_TO_OLD_ID_MAP[project_id]}" if project_id in NEW_TO_OLD_ID_MAP else f"https://www.zhaw.ch/de/forschung/projekt/{project_id}",
+                    "language": "de",
                     "category": { "name": "projects" },
-                    "dateUpdate": int(datetime.datetime.utcnow().timestamp())
+                    "dateUpdate": int(datetime.datetime.utcnow().timestamp()),
                 }
 
                 for info_object_field_name in field_parsers:
@@ -150,7 +118,7 @@ def run(channel):
                     body=json.dumps({ "link": info_object["link"] })
                 )
             except:
-                logger.exception(f"An error occured during processing of project: {project['fdbid']}")
+                logger.exception(f"An error occured during processing of project: {project_id}")
                 continue
 
         logger.info(f"Finished processing batch {batch_number} of {number_of_batches}")
